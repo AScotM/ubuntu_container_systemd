@@ -1,0 +1,25 @@
+# Use Ubuntu as base
+FROM ubuntu:22.04
+
+# Install systemd and dependencies
+RUN apt-get update && \
+    apt-get install -y systemd systemd-sysv dbus && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Configure systemd to run in container
+RUN cd /lib/systemd/system/sysinit.target.wants/ && \
+    ls | grep -v systemd-tmpfiles-setup | xargs rm -f && \
+    rm -f /lib/systemd/system/multi-user.target.wants/* && \
+    rm -f /etc/systemd/system/*.wants/* && \
+    rm -f /lib/systemd/system/local-fs.target.wants/* && \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev* && \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl* && \
+    rm -f /lib/systemd/system/basic.target.wants/* && \
+    rm -f /lib/systemd/system/anaconda.target.wants/*
+
+# Mask unnecessary services
+RUN systemctl mask dev-hugepages.mount sys-fs-fuse-connections.mount
+
+# Set init system
+CMD ["/usr/sbin/init"]
